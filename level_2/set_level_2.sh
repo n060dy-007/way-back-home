@@ -121,13 +121,13 @@ echo -e "\n--- Applying Updates ---"
 echo "Moving from ($STARTING_X, $STARTING_Y) to -> ($NEW_X, $NEW_Y)"
 
 # 3. Update Level Status
-echo "Setting Level 2 Complete & Progress 70%..."
+echo "Setting Level 1 Complete & Progress 40%..."
 curl -s -X PATCH "$API_BASE/participants/$PARTICIPANT_ID" \
   -H "Content-Type: application/json" \
   -d '{
     "level_1_complete": true,
-    "level_2_complete": true,
-    "completion_percentage": 70
+    "level_2_complete": false,
+    "completion_percentage": 40
   }' > /dev/null
 
 # 4. Update Location
