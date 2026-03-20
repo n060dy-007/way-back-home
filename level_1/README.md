@@ -1,6 +1,6 @@
 # Level 1: Pinpoint Your Location
 
-![Level 1: Pinpoint Your Location](img/01-01-header.gif)
+![Level 1: Pinpoint Your Location](img/01-03-architecture-diagram.svg)
 
 **Build a multi-agent AI system to analyze crash site evidence and confirm your exact coordinates.**
 
