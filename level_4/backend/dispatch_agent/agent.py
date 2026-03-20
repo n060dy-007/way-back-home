@@ -47,7 +47,7 @@ def lookup_part_safety(part_name: str) -> str:
 
 ##REPLACE_MONITOR_HAZARD 
 
-MODEL_ID = os.getenv("MODEL_ID", "gemini-live-2.5-flash-preview-native-audio-09-2025")
+MODEL_ID = os.getenv("MODEL_ID", "gemini-live-2.5-flash-native-audio")
 root_agent = Agent(
     name="dispatch_agent",
     model=MODEL_ID,

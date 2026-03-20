@@ -147,7 +147,7 @@ async def monitor_for_hazard(
         
     await asyncio.sleep(10)
 
-MODEL_ID = os.getenv("MODEL_ID", "gemini-live-2.5-flash-preview-native-audio-09-2025")
+MODEL_ID = os.getenv("MODEL_ID", "gemini-live-2.5-flash-native-audio")
 root_agent = Agent(
     name="dispatch_agent",
     model=MODEL_ID,

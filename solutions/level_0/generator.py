@@ -30,7 +30,7 @@ APPEARANCE = config["appearance"]
 client = genai.Client(
     vertexai=True,
     project=os.environ.get("GOOGLE_CLOUD_PROJECT", config.get("project_id")),
-    location="us-central1"
+    location="global"
 )
 
 
