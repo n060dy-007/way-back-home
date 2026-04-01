@@ -18,8 +18,8 @@ import sys
 import requests
 
 # Configuration
-CONFIG_FILE = "../config.json"  # Config is in project root
-WORKSHOP_CONFIG_FILE = "../workshop.config.json"  # Workshop-level config
+CONFIG_FILE = "/home/ghall1801tx/way-back-home/config.json"  # Config is in project root
+WORKSHOP_CONFIG_FILE = "/home/ghall1801tx/way-back-home/workshop.config.json"  # Workshop-level config
 
 
 def get_workshop_config() -> dict:

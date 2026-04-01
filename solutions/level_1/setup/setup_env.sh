@@ -34,7 +34,7 @@ echo ""
 # -----------------------------------------------------------------------------
 echo "[0/6] Checking billing configuration..."
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 pip install --upgrade --user --quiet google-cloud-billing 2>/dev/null
 python3 "$SCRIPT_DIR/billing-enablement.py" || {
     echo "⚠️  Billing check failed. Continuing anyway (billing may already be configured)."
