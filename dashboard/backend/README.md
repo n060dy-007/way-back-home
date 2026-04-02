@@ -129,6 +129,9 @@ gcloud auth login  # Sign in with your @google.com account
 ### Using the CLI Script (Recommended)
 
 ```bash
+# Run from the repo root (way-back-home/)
+cd way-back-home
+
 # Create an event
 python3 scripts/manage_event.py create buildwithai-chi "Build with AI Chicago"
 python3 scripts/manage_event.py create buildwithai-chi "Build with AI Chicago" --max 1000
