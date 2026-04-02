@@ -16,7 +16,8 @@ Handles event management, participant registration, avatar storage, and location
 │   ┌─────────────────────────────────────────────────────┐   │
 │   │              FastAPI Application                    │   │
 │   │                                                     │   │
-│   │  /events/*          - Event management (public)     │   │
+│   │  /events/*          - Event info (public)          │   │
+│   │  /events (POST/PATCH)- Event mgmt (@google.com)    │   │
 │   │  /participants/*    - Participant registration      │   │
 │   │  /admin/*           - Admin (Firebase Auth)         │   │
 │   │  /config            - Client configuration          │   │
@@ -84,6 +85,16 @@ cp .env.template .env
 | `GET` | `/events/{code}/check-username/{username}` | Check username availability |
 | `GET` | `/events/{code}/participants` | List participants (for map) |
 
+### Google User Endpoints (`@google.com` Auth)
+
+Require `Authorization: Bearer {FIREBASE_ID_TOKEN}` header.
+User must have a `@google.com` email — no admin collection membership needed.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/events` | Create a new event |
+| `PATCH` | `/events/{code}` | Update event (name, description, max_participants) |
+
 #### Participants
 
 | Method | Endpoint | Description |
@@ -107,7 +118,54 @@ User's email must exist in the `admins` Firestore collection.
 | `GET` | `/admin/events` | List all events |
 | `DELETE` | `/admin/events/{code}` | Deactivate event |
 
+## 🎯 Google User Event Management
+
+Any Googler (`@google.com`) can create and update events. Just authenticate with gcloud:
+
+```bash
+gcloud auth login  # Sign in with your @google.com account
+```
+
+### Using the CLI Script (Recommended)
+
+```bash
+# Create an event
+python3 scripts/manage_event.py create buildwithai-chi "Build with AI Chicago"
+python3 scripts/manage_event.py create buildwithai-chi "Build with AI Chicago" --max 1000
+
+# Update an event (e.g. increase capacity)
+python3 scripts/manage_event.py update buildwithai-chi --max 2000
+
+# View event details
+python3 scripts/manage_event.py get buildwithai-chi
+```
+
+**Defaults:** `max_participants: 500`, `description: ""`, `active: true`.
+
+### Using curl Directly
+
+```bash
+# Get your identity token
+TOKEN=$(gcloud auth print-identity-token)
+
+# Create event
+curl -X POST https://api.waybackhome.dev/events \
+    -H "Authorization: Bearer $TOKEN" \
+    -H "Content-Type: application/json" \
+    -d '{"code": "buildwithai-chi", "name": "Build with AI Chicago"}'
+
+# Update event
+curl -X PATCH https://api.waybackhome.dev/events/buildwithai-chi \
+    -H "Authorization: Bearer $TOKEN" \
+    -H "Content-Type: application/json" \
+    -d '{"max_participants": 1000}'
+```
+
+You can update `name`, `description`, and/or `max_participants`. Only provided fields are changed.
+
 ## 🔐 Admin Setup
+
+Admins have additional powers beyond Google users: listing all events and deactivating events.
 
 ### 1. Add Admin Users to Firestore
 
@@ -121,17 +179,7 @@ admins/
 
 The document ID must be the user's email address.
 
-### 2. Get a Firebase ID Token
-
-```javascript
-import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-
-const auth = getAuth();
-const result = await signInWithPopup(auth, new GoogleAuthProvider());
-const idToken = await result.user.getIdToken();
-```
-
-### 3. Call Admin Endpoints
+### 2. Call Admin Endpoints
 
 ```bash
 curl -X POST https://api.waybackhome.dev/admin/events \
@@ -258,7 +306,8 @@ curl -X PATCH https://api.waybackhome.dev/participants/{participant_id} \
 | User Type | Access |
 |-----------|--------|
 | **Workshop Attendees** | Public endpoints only (register, upload, confirm) |
-| **Admins** | Firebase Auth + email in `admins` collection |
+| **Google Users** (`@google.com`) | Create and update events via Firebase Auth |
+| **Admins** | Firebase Auth + email in `admins` collection (list all, deactivate) |
 | **Storage** | Backend uses Admin SDK; avatars made public via `make_public()` |
 
 ## 🐛 Troubleshooting
