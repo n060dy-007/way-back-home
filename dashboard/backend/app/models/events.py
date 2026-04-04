@@ -27,3 +27,10 @@ class EventResponse(BaseModel):
     created_at: datetime
     created_by: Optional[str] = None  # Admin email who created the event
     active: bool = True
+
+
+class EventUpdate(BaseModel):
+    """Request model for updating an event (google.com users)."""
+    name: Optional[str] = Field(default=None, min_length=3, max_length=100)
+    description: Optional[str] = None
+    max_participants: Optional[int] = Field(default=None, ge=10, le=10000)

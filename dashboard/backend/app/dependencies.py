@@ -68,3 +68,87 @@ async def verify_admin(authorization: str = Header(...)) -> str:
         raise HTTPException(status_code=401, detail="ID token has been revoked")
     except Exception as e:
         raise HTTPException(status_code=401, detail=f"Authentication failed: {str(e)}")
+
+
+# =============================================================================
+# Google Domain Authentication
+# =============================================================================
+
+ALLOWED_DOMAIN = "google.com"
+
+
+def _extract_email_from_token(token: str) -> str:
+    """
+    Extract and validate email from a Bearer token.
+
+    Supports two token types:
+      1. Firebase ID tokens (from Firebase Auth sign-in)
+      2. Google OIDC tokens (from `gcloud auth print-identity-token`)
+
+    Returns:
+        The user's email address
+
+    Raises:
+        HTTPException: If token is invalid or email is not from google.com
+    """
+    email = None
+
+    # Try Firebase ID token first
+    try:
+        decoded = firebase_auth.verify_id_token(token)
+        email = decoded.get("email")
+    except Exception:
+        pass
+
+    # Fall back to Google OIDC token (e.g. from gcloud CLI)
+    if not email:
+        try:
+            from google.oauth2 import id_token as google_id_token
+            from google.auth.transport import requests as google_requests
+
+            decoded = google_id_token.verify_oauth2_token(
+                token, google_requests.Request()
+            )
+            email = decoded.get("email")
+        except Exception:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid token. Provide a Firebase ID token or a Google OIDC token "
+                       "(from `gcloud auth print-identity-token`)"
+            )
+
+    if not email:
+        raise HTTPException(status_code=401, detail="Token does not contain email")
+
+    # Check domain
+    if not email.endswith(f"@{ALLOWED_DOMAIN}"):
+        raise HTTPException(
+            status_code=403,
+            detail=f"Access restricted to @{ALLOWED_DOMAIN} users"
+        )
+
+    return email
+
+
+async def verify_google_user(authorization: str = Header(...)) -> str:
+    """
+    Verify that the caller is a @google.com user.
+
+    Accepts either:
+      - Firebase ID token (from web sign-in)
+      - Google OIDC token (from `gcloud auth print-identity-token`)
+
+    Does NOT require admin collection membership.
+
+    Returns:
+        The user's email address
+
+    Raises:
+        HTTPException 401: Invalid or missing token
+        HTTPException 403: User is not from google.com domain
+    """
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Invalid authorization header format")
+
+    token = authorization[7:]  # Remove "Bearer " prefix
+    return _extract_email_from_token(token)
